@@ -35,6 +35,11 @@
 #include "../../verbosity.h"
 #include "../../paths.h"
 
+#define NEWLIB_PORT_AWARE
+#include <fileXio_rpc.h> /* fileXioMount, fileXioUmount, fileXioDevctl */
+#include <io_common.h>   /* FIO_MT_RDWR */
+
+#include <hdd-ioctl.h>   /* HDIOC_STATUS */
 
 static enum frontend_fork ps2_fork_mode = FRONTEND_FORK_NONE;
 static int bootDeviceID;
@@ -142,6 +147,13 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
 
 static void frontend_ps2_init(void *data)
 {
+   static char hddarg[] = "-o"
+                          "\0"
+                          "4"
+                          "\0"
+                          "-n"
+                          "\0"
+                          "20";
    reset_IOP();
 
    /* I/O Files */
@@ -165,8 +177,15 @@ static void frontend_ps2_init(void *data)
    /* HDD */
    SifExecModuleBuffer(&ps2dev9_irx, size_ps2dev9_irx, 0, NULL, NULL);
    SifExecModuleBuffer(&ps2atad_irx, size_ps2atad_irx, 0, NULL, NULL);
-   SifExecModuleBuffer(&ps2hdd_irx, size_ps2hdd_irx, 0, NULL, NULL);
-   SifExecModuleBuffer(&ps2fs_irx, size_ps2fs_irx, 0, NULL, NULL);
+   SifExecModuleBuffer(&ps2hdd_irx, size_ps2hdd_irx, 0, sizeof(hddarg), hddarg);
+   /* 0 = HDD connected and formatted, 1 = not formatted, 2 = HDD not usable, 3 = HDD not connected */
+   if (fileXioDevctl("hdd0:", HDIOC_STATUS, NULL, 0, NULL, 0) == 0)
+   {
+      SifExecModuleBuffer(&ps2fs_irx, size_ps2fs_irx, 0, NULL, NULL);
+      fileXioUmount("pfs0:");
+      fileXioMount("pfs0:","hdd0:__common", FIO_MT_RDWR);
+   }
+
 
 #ifndef IS_SALAMANDER
    /* Controllers */
@@ -316,6 +335,11 @@ static int frontend_ps2_parse_drive_list(void *data, bool load_content)
          FILE_TYPE_DIRECTORY, 0, 0);
    menu_entries_append_enum(list,
          rootDevicePath(BOOT_DEVICE_HOST),
+         msg_hash_to_str(MENU_ENUM_LABEL_FILE_DETECT_CORE_LIST_PUSH_DIR),
+         enum_idx,
+         FILE_TYPE_DIRECTORY, 0, 0);
+   menu_entries_append_enum(list,
+         rootDevicePath(BOOT_DEVICE_PFS0),
          msg_hash_to_str(MENU_ENUM_LABEL_FILE_DETECT_CORE_LIST_PUSH_DIR),
          enum_idx,
          FILE_TYPE_DIRECTORY, 0, 0);

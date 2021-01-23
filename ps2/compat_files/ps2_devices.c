@@ -42,6 +42,7 @@
 #define DEVICE_HOST7 "host7:"
 #define DEVICE_HOST8 "host8:"
 #define DEVICE_HOST9 "host9:"
+#define DEVICE_PFS0 "pfs0:"
 
 #define DEVICE_MC0_PATH DEVICE_MC0 DEVICE_SLASH
 #define DEVICE_MC1_PATH DEVICE_MC1 DEVICE_SLASH
@@ -62,6 +63,7 @@
 #define DEVICE_HOST7_PATH DEVICE_HOST7 DEVICE_SLASH
 #define DEVICE_HOST8_PATH DEVICE_HOST8 DEVICE_SLASH
 #define DEVICE_HOST9_PATH DEVICE_HOST9 DEVICE_SLASH
+#define DEVICE_PFS0_PATH DEVICE_PFS0 DEVICE_SLASH
 
 char *rootDevicePath(enum BootDeviceIDs device_id)
 {
@@ -105,6 +107,8 @@ char *rootDevicePath(enum BootDeviceIDs device_id)
          return DEVICE_HOST8_PATH;
       case BOOT_DEVICE_HOST9:
          return DEVICE_HOST9_PATH;
+      case BOOT_DEVICE_PFS0:
+         return DEVICE_PFS0_PATH;
       default:
          return "";
    }
@@ -150,6 +154,8 @@ enum BootDeviceIDs getBootDeviceID(char *path)
       return BOOT_DEVICE_HOST8;
    else if (!strncmp(path, DEVICE_HOST9, 6))
       return BOOT_DEVICE_HOST9;
+   else if (!strncmp(path, DEVICE_PFS0, 5))
+      return BOOT_DEVICE_PFS0;
    else
       return BOOT_DEVICE_UNKNOWN;
 }
@@ -162,7 +168,7 @@ enum BootDeviceIDs getBootDeviceID(char *path)
 
 bool waitUntilDeviceIsReady(enum BootDeviceIDs device_id)
 {
-   struct stat buffer;   
+   struct stat buffer;
    int ret = -1;
    int retries = 100;
    char *rootDevice = rootDevicePath(device_id);
