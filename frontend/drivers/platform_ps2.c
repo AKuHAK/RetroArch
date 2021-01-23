@@ -177,7 +177,7 @@ static void frontend_ps2_init(void *data)
    /* HDD */
    SifExecModuleBuffer(&ps2dev9_irx, size_ps2dev9_irx, 0, NULL, NULL);
    SifExecModuleBuffer(&ps2atad_irx, size_ps2atad_irx, 0, NULL, NULL);
-   SifExecModuleBuffer(&ps2hdd_irx, size_ps2hdd_irx, 0, sizeof(hddarg), hddarg);
+   SifExecModuleBuffer(&ps2hdd_irx, size_ps2hdd_irx, sizeof(hddarg), hddarg, NULL);
    /* 0 = HDD connected and formatted, 1 = not formatted, 2 = HDD not usable, 3 = HDD not connected */
    if (fileXioDevctl("hdd0:", HDIOC_STATUS, NULL, 0, NULL, 0) == 0)
    {
