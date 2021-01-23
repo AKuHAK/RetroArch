@@ -162,6 +162,12 @@ static void frontend_ps2_init(void *data)
    SifExecModuleBuffer(&cdfs_irx, size_cdfs_irx, 0, NULL, NULL);
 #endif
 
+   /* HDD */
+   SifExecModuleBuffer(&ps2dev9_irx, size_ps2dev9_irx, 0, NULL, NULL);
+   SifExecModuleBuffer(&ps2atad_irx, size_ps2atad_irx, 0, NULL, NULL);
+   SifExecModuleBuffer(&ps2hdd_irx, size_ps2hdd_irx, 0, NULL, NULL);
+   SifExecModuleBuffer(&ps2fs_irx, size_ps2fs_irx, 0, NULL, NULL);
+
 #ifndef IS_SALAMANDER
    /* Controllers */
    SifExecModuleBuffer(&mtapman_irx, size_mtapman_irx, 0, NULL, NULL);
