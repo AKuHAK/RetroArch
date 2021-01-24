@@ -214,7 +214,7 @@ static void frontend_ps2_init(void *data)
 #endif
 
 #if defined(BUILD_FOR_PCSX2)
-   bootDeviceID = BOOT_DEVICE_MC0;
+   bootDeviceID = BOOT_DEVICE_PFS0;
    strlcpy(cwd, rootDevicePath(bootDeviceID), sizeof(cwd));
 #else
    getcwd(cwd, sizeof(cwd));
