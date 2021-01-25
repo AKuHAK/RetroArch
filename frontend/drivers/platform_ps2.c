@@ -160,16 +160,19 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
                /* /RA/RA.ELF
                   partition = pfs
                */
-               strlcat(path, mountpnt, sizeof(path));
-               strlcat(path, tmp_path, sizeof(path));
+               /*strlcat(path, mountpnt, sizeof(path));
+               strlcat(path, tmp_path, sizeof(path));*/
                /* pfs0:/RA/RA.ELF */
             }
-            fileXioUmount(mountpnt);
-            fileXioMount(mountpnt, device, FIO_MT_RDWR);
+            /* fileXioUmount(mountpnt);
+            fileXioMount(mountpnt, device, FIO_MT_RDWR); */
+            fileXioUmount("pfs0");
+            fileXioMount("pfs0", "hdd0:__common", FIO_MT_RDWR);
          }
-         else
-            strlcpy(path, argv[1], sizeof(path));
+         /* else
+               strlcpy(path, argv[1], sizeof(path));*/
 
+         strlcpy(path, argv[1], sizeof(path));
          args->touched        = true;
          args->no_content     = false;
          args->verbose        = false;
@@ -182,7 +185,8 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
          RARCH_LOG("argv[0]: %s\n", argv[0]);
          RARCH_LOG("argv[1]: %s\n", argv[1]);
 
-         RARCH_LOG("Auto-start game %s.\n", path);
+         /* RARCH_LOG("Auto-start game %s.\n", path); */
+         RARCH_LOG("Auto-start game device: %s, mountpnt: %s, path: %s.\n", device, mountpnt, path );
       }
    }
 #endif
@@ -229,8 +233,8 @@ static void frontend_ps2_init(void *data)
    if (fileXioDevctl("hdd0:", HDIOC_STATUS, NULL, 0, NULL, 0) == 0)
    {
       SifExecModuleBuffer(&ps2fs_irx, size_ps2fs_irx, 0, NULL, NULL);
-      fileXioUmount("pfs0:");
-      fileXioMount("pfs0:","hdd0:__common", FIO_MT_RDWR);
+      /* fileXioUmount("pfs1:");
+      fileXioMount("pfs1:","hdd0:__common", FIO_MT_RDWR); */
    }
 
 
