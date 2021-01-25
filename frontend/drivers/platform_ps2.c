@@ -121,19 +121,18 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
 
       if (args)
       {
-         strlcpy(path, argv[1], sizeof(path));
-
          /* for PS2 HDD we need to extract mountpoint information from argv[1] */
          /* hdd0:PP.TEST:pfs:/RA/RA.ELF
           * hdd0:PP.TEST:NOBOOT
           * hdd0:PP.TEST:PATINFO
           * hdd0:MBRBOOT */
-         if (string_starts_with(path,"hdd"))
+         if (string_starts_with(argv[1],"hdd"))
          {
-            char **path_ptr = &path;
+            char *tmp_path  = NULL;
+            strlcpy(tmp_path, argv[1], sizeof(tmp_path));
+            char **path_ptr = &tmp_path;
             char *device    = NULL;
             char *partition = NULL;
-            char *tmp_path  = "pfs0:";
             char *mountpnt  = "pfs0:";
             device    = string_tokenize(path_ptr, ":");
          /* PP.TEST:pfs:/RA/RA.ELF
@@ -153,7 +152,7 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
             */
             free(partition);
             partition = NULL;
-            if (string_starts_with(path,"pfs")))
+            if (string_starts_with(path,"pfs"))
             {
                partition = string_tokenize(path_ptr, ":");
                free(partition);
@@ -161,13 +160,15 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
                /* /RA/RA.ELF
                   partition = pfs
                */
-               strlcat(tmp_path, path, sizeof(tmp_path));
+               strlcat(path, mountpnt, sizeof(path));
+               strlcat(path, tmp_path, sizeof(path));
                /* pfs0:/RA/RA.ELF */
             }
-            path = tmp_path;
             fileXioUmount(mountpnt);
             fileXioMount(mountpnt, device, FIO_MT_RDWR);
          }
+         else
+            strlcpy(path, argv[1], sizeof(path));
 
          args->touched        = true;
          args->no_content     = false;
