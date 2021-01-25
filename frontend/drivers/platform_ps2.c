@@ -123,6 +123,52 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
       {
          strlcpy(path, argv[1], sizeof(path));
 
+         /* for PS2 HDD we need to extract mountpoint information from argv[1] */
+         /* hdd0:PP.TEST:pfs:/RA/RA.ELF
+          * hdd0:PP.TEST:NOBOOT
+          * hdd0:PP.TEST:PATINFO
+          * hdd0:MBRBOOT */
+         if (string_starts_with(path,"hdd"))
+         {
+            char **path_ptr = &path;
+            char *device    = NULL;
+            char *partition = NULL;
+            char *tmp_path  = "pfs0:";
+            char *mountpnt  = "pfs0:";
+            device    = string_tokenize(path_ptr, ":");
+         /* PP.TEST:pfs:/RA/RA.ELF
+          * PP.TEST:NOBOOT
+          * PP.TEST:PATINFO
+          * MBRBOOT
+            device = "hdd0" */
+            partition = string_tokenize(path_ptr, ":");
+            strlcat(device, ":", sizeof(device));
+            strlcat(device, partition, sizeof(device));
+         /* pfs:/RA/RA.ELF
+          * NOBOOT
+          * PATINFO
+          * NULL
+            device = "hdd0:PP.TEST"
+            device = "hdd0:MBRBOOT"
+            */
+            free(partition);
+            partition = NULL;
+            if (string_starts_with(path,"pfs")))
+            {
+               partition = string_tokenize(path_ptr, ":");
+               free(partition);
+               partition = NULL;
+               /* /RA/RA.ELF
+                  partition = pfs
+               */
+               strlcat(tmp_path, path, sizeof(tmp_path));
+               /* pfs0:/RA/RA.ELF */
+            }
+            path = tmp_path;
+            fileXioUmount(mountpnt);
+            fileXioMount(mountpnt, device, FIO_MT_RDWR);
+         }
+
          args->touched        = true;
          args->no_content     = false;
          args->verbose        = false;
@@ -135,7 +181,7 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
          RARCH_LOG("argv[0]: %s\n", argv[0]);
          RARCH_LOG("argv[1]: %s\n", argv[1]);
 
-         RARCH_LOG("Auto-start game %s.\n", argv[1]);
+         RARCH_LOG("Auto-start game %s.\n", path);
       }
    }
 #endif
