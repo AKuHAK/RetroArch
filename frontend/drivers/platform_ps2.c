@@ -110,6 +110,11 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
       void *args, void *params_data)
 {
    int i;
+   fileXioUmount("pfs0");
+   fileXioMount("pfs0", "hdd0:PP.ULE", FIO_MT_RDWR);
+   strlcpy(argv[1], "pfs0:/", sizeof(argv[1]));
+   strlcpy(argv[0], "pfs0:/", sizeof(argv[0]));
+   
    create_path_names();
 
 #ifndef IS_SALAMANDER
@@ -168,8 +173,7 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
             }
             /* fileXioUmount(mountpnt);
             fileXioMount(mountpnt, device, FIO_MT_RDWR); */
-            fileXioUmount("pfs0");
-            fileXioMount("pfs0", "hdd0:__common", FIO_MT_RDWR);
+
          }
          /* else
                strlcpy(path, argv[1], sizeof(path));*/
