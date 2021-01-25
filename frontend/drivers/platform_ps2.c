@@ -126,14 +126,16 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
           * hdd0:PP.TEST:NOBOOT
           * hdd0:PP.TEST:PATINFO
           * hdd0:MBRBOOT */
+         char *device    = NULL;
+         char *mountpnt  = "pfs0:";
+         
          if (string_starts_with(argv[1],"hdd"))
          {
             char *tmp_path  = NULL;
             strlcpy(tmp_path, argv[1], sizeof(tmp_path));
             char **path_ptr = &tmp_path;
-            char *device    = NULL;
             char *partition = NULL;
-            char *mountpnt  = "pfs0:";
+            
             device    = string_tokenize(path_ptr, ":");
          /* PP.TEST:pfs:/RA/RA.ELF
           * PP.TEST:NOBOOT
