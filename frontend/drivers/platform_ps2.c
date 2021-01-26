@@ -111,7 +111,7 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
 {
    int i;
    create_path_names();
-   retro_main_log_file_init("mc0:/retroarch-log.txt");
+   retro_main_log_file_init("mc0:/retroarch-log.txt", 0);
 
 #ifndef IS_SALAMANDER
    if (!string_is_empty(argv[1]))
