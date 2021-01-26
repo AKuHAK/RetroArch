@@ -110,6 +110,22 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
       void *args, void *params_data)
 {
    int i;
+   chdir("pfs0:/");
+#if defined(BUILD_FOR_PCSX2)
+   bootDeviceID = BOOT_DEVICE_PFS0;
+   strlcpy(cwd, rootDevicePath(bootDeviceID), sizeof(cwd));
+#else
+   getcwd(cwd, sizeof(cwd));
+   bootDeviceID = getBootDeviceID(cwd);
+#if !defined(IS_SALAMANDER) && !defined(DEBUG)
+   // If it is not salamander we need to go one level up for set the CWD.
+   path_parent_dir(cwd);
+#endif
+#endif
+
+#if !defined(DEBUG)
+   waitUntilDeviceIsReady(bootDeviceID);
+#endif
    create_path_names();
 
 #ifndef IS_SALAMANDER
@@ -135,7 +151,7 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
          RARCH_LOG("argv[0]: %s\n", argv[0]);
          RARCH_LOG("argv[1]: %s\n", argv[1]);
 
-         RARCH_LOG("Auto-start game %s.\n", argv[1]);
+         RARCH_LOG("Auto-start game %s.\n", path);
       }
    }
 #endif
@@ -211,22 +227,6 @@ static void frontend_ps2_init(void *data)
    {
       RARCH_ERR("padInit library not initalizated\n");
    }
-#endif
-
-#if defined(BUILD_FOR_PCSX2)
-   bootDeviceID = BOOT_DEVICE_PFS0;
-   strlcpy(cwd, rootDevicePath(bootDeviceID), sizeof(cwd));
-#else
-   getcwd(cwd, sizeof(cwd));
-   bootDeviceID = getBootDeviceID(cwd);
-#if !defined(IS_SALAMANDER) && !defined(DEBUG)
-   // If it is not salamander we need to go one level up for set the CWD.
-   path_parent_dir(cwd);
-#endif
-#endif
-
-#if !defined(DEBUG)
-   waitUntilDeviceIsReady(bootDeviceID);
 #endif
 }
 
