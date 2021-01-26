@@ -137,6 +137,11 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
          RARCH_LOG("argv[1]: %s\n", argv[1]);
 
          RARCH_LOG("Auto-start game %s.\n", path);
+
+         printf("argv[0]: %s\n", argv[0]);
+         printf("argv[1]: %s\n", argv[1]);
+
+         printf("Auto-start game %s.\n", path);
       }
    }
 #endif
