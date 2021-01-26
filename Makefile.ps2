@@ -2,6 +2,7 @@ BUILD_FOR_PCSX2    = 0
 DEBUG              = 0
 HAVE_THREADS       = 0
 MUTE_WARNINGS      = 1
+HAVE_FILE_LOGGER   = 1
 PS2_IP = 192.168.1.10
 
 TARGET = retroarchps2-debug.elf
@@ -69,6 +70,11 @@ EE_ASFLAGS = $(ASFLAGS)
 EE_INCS = $(INCDIR)
 EE_BIN = $(TARGET)
 EE_GPVAL = $(GPVAL)
+
+ifeq ($(HAVE_FILE_LOGGER), 1)
+CFLAGS		+= -DHAVE_FILE_LOGGER
+endif
+
 
 
 all: irxdir $(EE_BIN)
