@@ -113,6 +113,8 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
    create_path_names();
    retro_main_log_file_init("mc0:/retroarch-log.txt", 0);
    printf("argv[0]: %s\n", argv[0]);
+   RARCH_LOG("argv[0]: %s\n", argv[0]);
+         RARCH_LOG("argv[1]: %s\n", argv[1]);
 
 #ifndef IS_SALAMANDER
    if (!string_is_empty(argv[1]))
