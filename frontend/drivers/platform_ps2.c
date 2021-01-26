@@ -110,23 +110,8 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
       void *args, void *params_data)
 {
    int i;
-   chdir("pfs0:/");
-#if defined(BUILD_FOR_PCSX2)
-   bootDeviceID = BOOT_DEVICE_PFS0;
-   strlcpy(cwd, rootDevicePath(bootDeviceID), sizeof(cwd));
-#else
-   getcwd(cwd, sizeof(cwd));
-   bootDeviceID = getBootDeviceID(cwd);
-#if !defined(IS_SALAMANDER) && !defined(DEBUG)
-   // If it is not salamander we need to go one level up for set the CWD.
-   path_parent_dir(cwd);
-#endif
-#endif
-
-#if !defined(DEBUG)
-   waitUntilDeviceIsReady(bootDeviceID);
-#endif
    create_path_names();
+   retro_main_log_file_init("mc0:/retroarch-log.txt");
 
 #ifndef IS_SALAMANDER
    if (!string_is_empty(argv[1]))
@@ -202,7 +187,6 @@ static void frontend_ps2_init(void *data)
       fileXioMount("pfs0:","hdd0:__common", FIO_MT_RDWR);
    }
 
-
 #ifndef IS_SALAMANDER
    /* Controllers */
    SifExecModuleBuffer(&mtapman_irx, size_mtapman_irx, 0, NULL, NULL);
@@ -227,6 +211,26 @@ static void frontend_ps2_init(void *data)
    {
       RARCH_ERR("padInit library not initalizated\n");
    }
+#endif
+
+//   chdir("pfs0:/");
+#if defined(BUILD_FOR_PCSX2)
+   bootDeviceID = BOOT_DEVICE_PFS0;
+   strlcpy(cwd, rootDevicePath(bootDeviceID), sizeof(cwd));
+#else
+   bootDeviceID = BOOT_DEVICE_PFS0;
+   strlcpy(cwd, rootDevicePath(bootDeviceID), sizeof(cwd));
+
+   getcwd(cwd, sizeof(cwd));
+   bootDeviceID = getBootDeviceID(cwd);
+#if !defined(IS_SALAMANDER) && !defined(DEBUG)
+   // If it is not salamander we need to go one level up for set the CWD.
+   path_parent_dir(cwd);
+#endif
+#endif
+
+#if !defined(DEBUG)
+   waitUntilDeviceIsReady(bootDeviceID);
 #endif
 }
 
