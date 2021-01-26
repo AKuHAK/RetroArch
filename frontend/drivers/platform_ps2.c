@@ -131,9 +131,9 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
 #else
    bootDeviceID = BOOT_DEVICE_PFS0;
    strlcpy(cwd, rootDevicePath(bootDeviceID), sizeof(cwd));
+   printf("cwd: %s\n", cwd);
 
    getcwd(cwd, sizeof(cwd));
-   printf("cwd: %s\n", cwd);
    bootDeviceID = getBootDeviceID(cwd);
 #if !defined(IS_SALAMANDER) && !defined(DEBUG)
    // If it is not salamander we need to go one level up for set the CWD.
