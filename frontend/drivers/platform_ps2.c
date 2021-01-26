@@ -40,7 +40,6 @@
 #include <io_common.h>   /* FIO_MT_RDWR */
 
 #include <hdd-ioctl.h>   /* HDIOC_STATUS */
-#include <sior.h>
 
 static enum frontend_fork ps2_fork_mode = FRONTEND_FORK_NONE;
 static int bootDeviceID;
@@ -116,9 +115,10 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
    create_path_names();
 
    retro_main_log_file_init("mc0:/retroarch-log.txt", 0);
-   sio_printf("argv[0]: %s\n", argv[0]);
+
    printf("argv[0]: %s\n", argv[0]);
    printf("argv[1]: %s\n", argv[1]);
+//   getcwd(cwd, sizeof(cwd));
    getcwd(cwd, sizeof(cwd));
    printf("cwd: %s\n", cwd);
    RARCH_LOG("argv[0]: %s\n", argv[0]);
@@ -133,6 +133,7 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
    strlcpy(cwd, rootDevicePath(bootDeviceID), sizeof(cwd));
 
    getcwd(cwd, sizeof(cwd));
+   printf("cwd: %s\n", cwd);
    bootDeviceID = getBootDeviceID(cwd);
 #if !defined(IS_SALAMANDER) && !defined(DEBUG)
    // If it is not salamander we need to go one level up for set the CWD.
