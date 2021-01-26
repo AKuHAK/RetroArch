@@ -106,15 +106,44 @@ static void reset_IOP()
    sbv_patch_disable_prefix_check();
 }
 
+#define DEBUG_BGCOLOR(col) *((u64 *) 0x120000e0) = (u64) (col)
+
 static void frontend_ps2_get_env(int *argc, char *argv[],
       void *args, void *params_data)
 {
    int i;
    create_path_names();
+
    retro_main_log_file_init("mc0:/retroarch-log.txt", 0);
    printf("argv[0]: %s\n", argv[0]);
+   printf("argv[1]: %s\n", argv[1]);
+   getcwd(cwd, sizeof(cwd));
+   printf("cwd: %s\n", cwd);
    RARCH_LOG("argv[0]: %s\n", argv[0]);
-         RARCH_LOG("argv[1]: %s\n", argv[1]);
+   RARCH_LOG("argv[1]: %s\n", argv[1]);
+
+//   chdir("pfs0:/");
+#if defined(BUILD_FOR_PCSX2)
+   bootDeviceID = BOOT_DEVICE_PFS0;
+   strlcpy(cwd, rootDevicePath(bootDeviceID), sizeof(cwd));
+#else
+   bootDeviceID = BOOT_DEVICE_PFS0;
+   strlcpy(cwd, rootDevicePath(bootDeviceID), sizeof(cwd));
+
+   getcwd(cwd, sizeof(cwd));
+   bootDeviceID = getBootDeviceID(cwd);
+#if !defined(IS_SALAMANDER) && !defined(DEBUG)
+   // If it is not salamander we need to go one level up for set the CWD.
+   path_parent_dir(cwd);
+#endif
+#endif
+
+#if !defined(DEBUG)
+   if (bootDeviceID = BOOT_DEVICE_MASS)
+      waitUntilDeviceIsReady(bootDeviceID);
+#endif
+
+
 
 #ifndef IS_SALAMANDER
    if (!string_is_empty(argv[1]))
@@ -220,26 +249,7 @@ static void frontend_ps2_init(void *data)
       RARCH_ERR("padInit library not initalizated\n");
    }
 #endif
-
-//   chdir("pfs0:/");
-#if defined(BUILD_FOR_PCSX2)
-   bootDeviceID = BOOT_DEVICE_PFS0;
-   strlcpy(cwd, rootDevicePath(bootDeviceID), sizeof(cwd));
-#else
-   bootDeviceID = BOOT_DEVICE_PFS0;
-   strlcpy(cwd, rootDevicePath(bootDeviceID), sizeof(cwd));
-
-   getcwd(cwd, sizeof(cwd));
-   bootDeviceID = getBootDeviceID(cwd);
-#if !defined(IS_SALAMANDER) && !defined(DEBUG)
-   // If it is not salamander we need to go one level up for set the CWD.
-   path_parent_dir(cwd);
-#endif
-#endif
-
-#if !defined(DEBUG)
-   waitUntilDeviceIsReady(bootDeviceID);
-#endif
+   printf("Init done \n");
 }
 
 static void frontend_ps2_deinit(void *data)
