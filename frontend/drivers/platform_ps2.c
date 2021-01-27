@@ -116,7 +116,7 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
 #ifndef IS_SALAMANDER
    verbosity_enable();
 //   logger_init();
-   retro_main_log_file_init("mc0:/RETROARCH/retroarch-log.txt", true);
+//   retro_main_log_file_init("mc0:/RETROARCH/retroarch-log.txt", true);
    RARCH_LOG("Test line\n");
 #endif
 
@@ -155,7 +155,7 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
 #endif
 
    create_path_names();
-   retro_main_log_file_init(NULL, true);
+   retro_main_log_file_init(g_defaults.dirs[DEFAULT_DIR_LOGS] "/retroarch-log.txt", true);
    RARCH_LOG("Test line INIT\n");
 
 
