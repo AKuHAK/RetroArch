@@ -126,19 +126,23 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
    printf("cwd: %s\n", cwd);
    RARCH_LOG("argv[0]: %s\n", argv[0]);
    RARCH_LOG("argv[1]: %s\n", argv[1]);
-   retro_main_log_file_deinit();
 
 //   chdir("pfs0:/");
-#if defined(BUILD_FOR_PCSX2)
-   bootDeviceID = BOOT_DEVICE_PFS0;
-   strlcpy(cwd, rootDevicePath(bootDeviceID), sizeof(cwd));
-#else
-   bootDeviceID = BOOT_DEVICE_PFS0;
-   strlcpy(cwd, rootDevicePath(bootDeviceID), sizeof(cwd));
-   printf("cwd: %s\n", cwd);
+//#if defined(BUILD_FOR_PCSX2)
+//   bootDeviceID = BOOT_DEVICE_PFS0;
+//   strlcpy(cwd, rootDevicePath(bootDeviceID), sizeof(cwd));
+//#else
+//   bootDeviceID = BOOT_DEVICE_PFS0;
+//   strlcpy(cwd, rootDevicePath(bootDeviceID), sizeof(cwd));
 
    getcwd(cwd, sizeof(cwd));
    bootDeviceID = getBootDeviceID(cwd);
+   printf("cwd: %s\n", cwd);
+   RARCH_LOG("cwd: %s\n", cwd);
+   RARCH_LOG("bootDeviceID: %d\n", bootDeviceID);
+   retro_main_log_file_deinit();
+   bootDeviceID = BOOT_DEVICE_PFS0;
+   strlcpy(cwd, rootDevicePath(bootDeviceID), sizeof(cwd));
 #if !defined(IS_SALAMANDER) && !defined(DEBUG)
    // If it is not salamander we need to go one level up for set the CWD.
    path_parent_dir(cwd);
