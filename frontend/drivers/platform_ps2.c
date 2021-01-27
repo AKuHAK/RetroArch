@@ -155,9 +155,13 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
 #endif
 
    create_path_names();
-   retro_main_log_file_init(g_defaults.dirs[DEFAULT_DIR_LOGS] "/retroarch-log.txt", true);
-   RARCH_LOG("Test line INIT\n");
+   char log_path[FILENAME_MAX] = {0};
+   strlcat(log_path, "RETROARCH", sizeof(user_path));
 
+   fill_pathname_join(log_path, g_defaults.dirs[DEFAULT_DIR_LOGS],
+      "retroarch-log.txt", sizeof(log_path));
+   retro_main_log_file_init(log_path, false);
+   RARCH_LOG("Test line INIT\n");
 
 #ifndef IS_SALAMANDER
    if (!string_is_empty(argv[1]))
