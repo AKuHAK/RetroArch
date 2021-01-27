@@ -116,7 +116,7 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
 #ifndef IS_SALAMANDER
    verbosity_enable();
 //   logger_init();
-   retro_main_log_file_init("mc0:/retroarch-log.txt", 0);
+   retro_main_log_file_init("mc0:/RETROARCH/retroarch-log.txt", true);
    RARCH_LOG("Test line\n");
 #endif
 
@@ -126,6 +126,7 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
    printf("cwd: %s\n", cwd);
    RARCH_LOG("argv[0]: %s\n", argv[0]);
    RARCH_LOG("argv[1]: %s\n", argv[1]);
+   retro_main_log_file_deinit();
 
 //   chdir("pfs0:/");
 #if defined(BUILD_FOR_PCSX2)
