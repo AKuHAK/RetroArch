@@ -138,7 +138,7 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
 //   strlcpy(cwd, rootDevicePath(bootDeviceID), sizeof(cwd));
 
    create_path_names();
-   strlcat(log_path, "RETROARCH", sizeof(user_path));
+//   strlcat(log_path, "RETROARCH", sizeof(user_path));
 
 //   fill_pathname_join(log_path, g_defaults.dirs[DEFAULT_DIR_LOGS],
 //      "retroarch-log.txt", sizeof(log_path));
