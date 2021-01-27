@@ -26,6 +26,10 @@
 #include <loadfile.h>
 #include <elf-loader.h>
 
+#define NEWLIB_PORT_AWARE
+#include <fileXio_rpc.h>
+#include <fileio.h>
+
 #include <file/file_path.h>
 #include <string/stdstring.h>
 
@@ -39,13 +43,12 @@
 static enum frontend_fork ps2_fork_mode = FRONTEND_FORK_NONE;
 static int bootDeviceID;
 char cwd[FILENAME_MAX];
+char mountPoint[10];
 
 static void create_path_names(void)
 {
    char user_path[FILENAME_MAX];
 
-   /* TODO/FIXME - third parameter here needs to be size of
-    * rootDevicePath(bootDeviceID) */
    strlcpy(user_path, rootDevicePath(bootDeviceID), sizeof(user_path));
    strlcat(user_path, "RETROARCH", sizeof(user_path));
 
@@ -101,6 +104,88 @@ static void reset_IOP()
    sbv_patch_disable_prefix_check();
 }
 
+static void load_modules() {
+   static char hddarg[] = "-o"
+                           "\0"
+                           "4"
+                           "\0"
+                           "-n"
+                           "\0"
+                           "20";
+
+      /* I/O Files */
+   SifExecModuleBuffer(&iomanX_irx, size_iomanX_irx, 0, NULL, NULL);
+   SifExecModuleBuffer(&fileXio_irx, size_fileXio_irx, 0, NULL, NULL);
+   SifExecModuleBuffer(&sio2man_irx, size_sio2man_irx, 0, NULL, NULL);
+
+   /* Memory Card */
+   SifExecModuleBuffer(&mcman_irx, size_mcman_irx, 0, NULL, NULL);
+   SifExecModuleBuffer(&mcserv_irx, size_mcserv_irx, 0, NULL, NULL);
+
+   /* USB */
+   SifExecModuleBuffer(&usbd_irx, size_usbd_irx, 0, NULL, NULL);
+   SifExecModuleBuffer(&usbhdfsd_irx, size_usbhdfsd_irx, 0, NULL, NULL);
+
+   /* HDD */
+   SifExecModuleBuffer(&ps2dev9_irx, size_ps2dev9_irx, 0, NULL, NULL);
+   SifExecModuleBuffer(&ps2atad_irx, size_ps2atad_irx, 0, NULL, NULL);
+   SifExecModuleBuffer(&ps2hdd_irx, size_ps2hdd_irx, sizeof(hddarg), hddarg, NULL);
+   SifExecModuleBuffer(&ps2fs_irx, size_ps2fs_irx, 0, NULL, NULL);
+
+#if !defined(DEBUG)
+   /* CDFS */
+   SifExecModuleBuffer(&cdfs_irx, size_cdfs_irx, 0, NULL, NULL);
+#endif
+
+#ifndef IS_SALAMANDER
+   /* Controllers */
+   SifExecModuleBuffer(&mtapman_irx, size_mtapman_irx, 0, NULL, NULL);
+   SifExecModuleBuffer(&padman_irx, size_padman_irx, 0, NULL, NULL);
+
+   /* Audio */
+   SifExecModuleBuffer(&libsd_irx, size_libsd_irx, 0, NULL, NULL);
+   SifExecModuleBuffer(&audsrv_irx, size_audsrv_irx, 0, NULL, NULL);
+#endif
+}
+
+static inline void mount_hdd_partition() {
+   char mountPath[FILENAME_MAX];
+   char mountString[50];
+   int shouldMount = 0;
+
+      /* Try to mount HDD partition, either from cwd or default one */
+   if (bootDeviceID == BOOT_DEVICE_HDD || bootDeviceID == BOOT_DEVICE_HDD0)
+   {
+      shouldMount = 1;
+      strlcpy(mountPath, cwd, sizeof(mountPath));
+   } else {
+      sprintf(mountPath, "hdd0:__common:pfs");
+#if !defined(IS_SALAMANDER)
+      shouldMount = 1;
+#endif
+   }
+
+   if (!shouldMount)
+      return;
+
+   if (getMountInfo(mountPath, mountString, mountPoint) != 1) 
+   {
+      RARCH_ERR("Partition info not mounted\n");
+   } else 
+   {
+      if (fileXioMount(mountString, mountPoint, FIO_MT_RDWR) < 0) 
+      {
+         RARCH_ERR("Error mount mounting partition %s, %s\n", mountString, mountPoint);
+      } else {
+         if (bootDeviceID == BOOT_DEVICE_HDD || bootDeviceID == BOOT_DEVICE_HDD0)
+         {
+            // If we're booting from HDD, we must update the cwd variable
+            strlcpy(cwd, mountString, sizeof(cwd));
+         }
+      }
+   }
+}
+
 static void frontend_ps2_get_env(int *argc, char *argv[],
       void *args, void *params_data)
 {
@@ -143,34 +228,9 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
 static void frontend_ps2_init(void *data)
 {
    reset_IOP();
-
-   /* I/O Files */
-   SifExecModuleBuffer(&iomanX_irx, size_iomanX_irx, 0, NULL, NULL);
-   SifExecModuleBuffer(&fileXio_irx, size_fileXio_irx, 0, NULL, NULL);
-   SifExecModuleBuffer(&sio2man_irx, size_sio2man_irx, 0, NULL, NULL);
-
-   /* Memory Card */
-   SifExecModuleBuffer(&mcman_irx, size_mcman_irx, 0, NULL, NULL);
-   SifExecModuleBuffer(&mcserv_irx, size_mcserv_irx, 0, NULL, NULL);
-
-   /* USB */
-   SifExecModuleBuffer(&usbd_irx, size_usbd_irx, 0, NULL, NULL);
-   SifExecModuleBuffer(&usbhdfsd_irx, size_usbhdfsd_irx, 0, NULL, NULL);
-
-#if !defined(DEBUG)
-   /* CDFS */
-   SifExecModuleBuffer(&cdfs_irx, size_cdfs_irx, 0, NULL, NULL);
-#endif
+   load_modules();
 
 #ifndef IS_SALAMANDER
-   /* Controllers */
-   SifExecModuleBuffer(&mtapman_irx, size_mtapman_irx, 0, NULL, NULL);
-   SifExecModuleBuffer(&padman_irx, size_padman_irx, 0, NULL, NULL);
-
-   /* Audio */
-   SifExecModuleBuffer(&libsd_irx, size_libsd_irx, 0, NULL, NULL);
-   SifExecModuleBuffer(&audsrv_irx, size_audsrv_irx, 0, NULL, NULL);
-
    /* Initializes audsrv library */
    if (audsrv_init())
    {
@@ -199,6 +259,7 @@ static void frontend_ps2_init(void *data)
    path_parent_dir(cwd);
 #endif
 #endif
+   mount_hdd_partition();
 
 #if !defined(DEBUG)
    waitUntilDeviceIsReady(bootDeviceID);
@@ -207,6 +268,7 @@ static void frontend_ps2_init(void *data)
 
 static void frontend_ps2_deinit(void *data)
 {
+   fileXioUmount(mountPoint);
 }
 
 static void frontend_ps2_exec(const char *path, bool should_load_game)
@@ -283,6 +345,7 @@ enum frontend_architecture frontend_ps2_get_arch(void)
 static int frontend_ps2_parse_drive_list(void *data, bool load_content)
 {
 #ifndef IS_SALAMANDER
+   char hdd[10];
    file_list_t *list = (file_list_t*)data;
    enum msg_hash_enums enum_idx = load_content ?
       MENU_ENUM_LABEL_FILE_DETECT_CORE_LIST_PUSH_DIR :
@@ -308,12 +371,22 @@ static int frontend_ps2_parse_drive_list(void *data, bool load_content)
          msg_hash_to_str(MENU_ENUM_LABEL_FILE_DETECT_CORE_LIST_PUSH_DIR),
          enum_idx,
          FILE_TYPE_DIRECTORY, 0, 0);
+   if (strlen(mountPoint) > 0) 
+   {
+      sprintf(hdd, "%s/", mountPoint);
+      menu_entries_append_enum(list,
+            hdd,
+            msg_hash_to_str(MENU_ENUM_LABEL_FILE_DETECT_CORE_LIST_PUSH_DIR),
+            enum_idx,
+            FILE_TYPE_DIRECTORY, 0, 0);
+   }
    menu_entries_append_enum(list,
          rootDevicePath(BOOT_DEVICE_HOST),
          msg_hash_to_str(MENU_ENUM_LABEL_FILE_DETECT_CORE_LIST_PUSH_DIR),
          enum_idx,
          FILE_TYPE_DIRECTORY, 0, 0);
 #if defined(DEBUG) && !defined(BUILD_FOR_PCSX2)
+   
    menu_entries_append_enum(list,
          "host:",
          msg_hash_to_str(MENU_ENUM_LABEL_FILE_DETECT_CORE_LIST_PUSH_DIR),
