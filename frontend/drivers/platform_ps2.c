@@ -112,13 +112,15 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
       void *args, void *params_data)
 {
    int i;
-   create_path_names();
 
+   verbosity_enable();
+   logger_init();
    retro_main_log_file_init("mc0:/retroarch-log.txt", 0);
+   RARCH_LOG("Test line\n");
+
 
    printf("argv[0]: %s\n", argv[0]);
    printf("argv[1]: %s\n", argv[1]);
-//   getcwd(cwd, sizeof(cwd));
    getcwd(cwd, sizeof(cwd));
    printf("cwd: %s\n", cwd);
    RARCH_LOG("argv[0]: %s\n", argv[0]);
@@ -142,10 +144,11 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
 #endif
 
 #if !defined(DEBUG)
-   if (bootDeviceID = BOOT_DEVICE_MASS)
+   if (bootDeviceID == BOOT_DEVICE_MASS)
       waitUntilDeviceIsReady(bootDeviceID);
 #endif
 
+   create_path_names();
 
 
 #ifndef IS_SALAMANDER
