@@ -147,7 +147,7 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
    // If it is not salamander we need to go one level up for set the CWD.
    path_parent_dir(cwd);
 #endif
-#endif
+//#endif
 
 #if !defined(DEBUG)
    if (bootDeviceID == BOOT_DEVICE_MASS)
