@@ -113,11 +113,12 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
 {
    int i;
 
+#ifndef IS_SALAMANDER
    verbosity_enable();
    logger_init();
    retro_main_log_file_init("mc0:/retroarch-log.txt", 0);
    RARCH_LOG("Test line\n");
-
+#endif
 
    printf("argv[0]: %s\n", argv[0]);
    printf("argv[1]: %s\n", argv[1]);
