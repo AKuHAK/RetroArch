@@ -43,7 +43,7 @@
 
 static enum frontend_fork ps2_fork_mode = FRONTEND_FORK_NONE;
 static int bootDeviceID;
-char cwd[FILENAME_MAX] = {0};
+//char cwd[FILENAME_MAX] = {0};
 char log_path[FILENAME_MAX] = {0};
 
 static void create_path_names(void)
@@ -113,6 +113,7 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
       void *args, void *params_data)
 {
    int i;
+   char cwd[FILENAME_MAX] = {0};
 
 #ifndef IS_SALAMANDER
    verbosity_enable();
@@ -125,8 +126,6 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
    printf("argv[1]: %s\n", argv[1]);
    getcwd(cwd, sizeof(cwd));
    printf("cwd: %s\n", cwd);
-   RARCH_LOG("argv[0]: %s\n", argv[0]);
-   RARCH_LOG("argv[1]: %s\n", argv[1]);
 
 //   chdir("pfs0:/");
 //#if defined(BUILD_FOR_PCSX2)
@@ -136,32 +135,19 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
 //   bootDeviceID = BOOT_DEVICE_PFS0;
 //   strlcpy(cwd, rootDevicePath(bootDeviceID), sizeof(cwd));
 
-   getcwd(cwd, sizeof(cwd));
-   bootDeviceID = getBootDeviceID(cwd);
-   printf("cwd: %s\n", cwd);
-   RARCH_LOG("cwd: %s\n", cwd);
-   RARCH_LOG("bootDeviceID: %d\n", bootDeviceID);
-//   retro_main_log_file_deinit();
-   bootDeviceID = BOOT_DEVICE_PFS0;
-   strlcpy(cwd, rootDevicePath(bootDeviceID), sizeof(cwd));
-#if !defined(IS_SALAMANDER) && !defined(DEBUG)
-   // If it is not salamander we need to go one level up for set the CWD.
-   path_parent_dir(cwd);
-#endif
-//#endif
-
-#if !defined(DEBUG)
-   if (bootDeviceID == BOOT_DEVICE_MASS)
-      waitUntilDeviceIsReady(bootDeviceID);
-#endif
-
    create_path_names();
    strlcat(log_path, "RETROARCH", sizeof(user_path));
 
    fill_pathname_join(log_path, g_defaults.dirs[DEFAULT_DIR_LOGS],
       "retroarch-log.txt", sizeof(log_path));
    retro_main_log_file_init(log_path, false);
-   RARCH_LOG("Test line INIT\n");
+   RARCH_LOG("get env argv[0]: %s\n", argv[0]);
+   RARCH_LOG("get env argv[1]: %s\n", argv[1]);
+   RARCH_LOG("get env Test line INIT\n");
+   chdir("mc0");
+   getcwd(cwd, sizeof(cwd));
+   RARCH_LOG("env cwd2: %s\n", cwd);
+
 
 #ifndef IS_SALAMANDER
    if (!string_is_empty(argv[1]))
@@ -210,6 +196,8 @@ static void frontend_ps2_init(void *data)
                           "-n"
                           "\0"
                           "20";
+   char cwd[FILENAME_MAX] = {0};
+
    reset_IOP();
 
    /* I/O Files */
@@ -251,6 +239,8 @@ static void frontend_ps2_init(void *data)
    SifExecModuleBuffer(&libsd_irx, size_libsd_irx, 0, NULL, NULL);
    SifExecModuleBuffer(&audsrv_irx, size_audsrv_irx, 0, NULL, NULL);
 
+
+
    /* Initializes audsrv library */
    if (audsrv_init())
    {
@@ -268,6 +258,27 @@ static void frontend_ps2_init(void *data)
    }
 #endif
    printf("Init done \n");
+   RARCH_LOG("Init done \n");
+   getcwd(cwd, sizeof(cwd));
+   bootDeviceID = getBootDeviceID(cwd);
+   printf("cwd: %s\n", cwd);
+   RARCH_LOG("cwd: %s\n", cwd);
+   RARCH_LOG("bootDeviceID: %d\n", bootDeviceID);
+//   retro_main_log_file_deinit();
+   bootDeviceID = BOOT_DEVICE_PFS0;
+   strlcpy(cwd, rootDevicePath(bootDeviceID), sizeof(cwd));
+#if !defined(IS_SALAMANDER) && !defined(DEBUG)
+   // If it is not salamander we need to go one level up for set the CWD.
+   path_parent_dir(cwd);
+#endif
+//#endif
+
+#if !defined(DEBUG)
+   if (bootDeviceID == BOOT_DEVICE_MASS)
+      waitUntilDeviceIsReady(bootDeviceID);
+#endif
+
+
 }
 
 static void frontend_ps2_deinit(void *data)
