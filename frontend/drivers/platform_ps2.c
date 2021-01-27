@@ -140,7 +140,7 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
    printf("cwd: %s\n", cwd);
    RARCH_LOG("cwd: %s\n", cwd);
    RARCH_LOG("bootDeviceID: %d\n", bootDeviceID);
-   retro_main_log_file_deinit();
+//   retro_main_log_file_deinit();
    bootDeviceID = BOOT_DEVICE_PFS0;
    strlcpy(cwd, rootDevicePath(bootDeviceID), sizeof(cwd));
 #if !defined(IS_SALAMANDER) && !defined(DEBUG)
@@ -155,6 +155,8 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
 #endif
 
    create_path_names();
+   retro_main_log_file_init(NULL, true);
+   RARCH_LOG("Test line INIT\n");
 
 
 #ifndef IS_SALAMANDER
