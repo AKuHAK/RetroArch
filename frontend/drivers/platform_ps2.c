@@ -115,7 +115,7 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
 
 #ifndef IS_SALAMANDER
    verbosity_enable();
-   logger_init();
+//   logger_init();
    retro_main_log_file_init("mc0:/retroarch-log.txt", 0);
    RARCH_LOG("Test line\n");
 #endif
