@@ -43,7 +43,8 @@
 
 static enum frontend_fork ps2_fork_mode = FRONTEND_FORK_NONE;
 static int bootDeviceID;
-char cwd[FILENAME_MAX];
+char cwd[FILENAME_MAX] = {0};
+char log_path[FILENAME_MAX] = {0};
 
 static void create_path_names(void)
 {
@@ -155,7 +156,6 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
 #endif
 
    create_path_names();
-   static char log_path[FILENAME_MAX] = {0};
    strlcat(log_path, "RETROARCH", sizeof(user_path));
 
    fill_pathname_join(log_path, g_defaults.dirs[DEFAULT_DIR_LOGS],
