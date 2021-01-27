@@ -49,6 +49,8 @@ char log_path[FILENAME_MAX] = {0};
 static void create_path_names(void)
 {
    char user_path[FILENAME_MAX];
+   char cwd[FILENAME_MAX] = {0};
+   getcwd(cwd, sizeof(cwd));
 
    /* TODO/FIXME - third parameter here needs to be size of
     * rootDevicePath(bootDeviceID) */
