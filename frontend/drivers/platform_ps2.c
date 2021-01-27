@@ -155,7 +155,7 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
 #endif
 
    create_path_names();
-   char log_path[FILENAME_MAX] = {0};
+   static char log_path[FILENAME_MAX] = {0};
    strlcat(log_path, "RETROARCH", sizeof(user_path));
 
    fill_pathname_join(log_path, g_defaults.dirs[DEFAULT_DIR_LOGS],
