@@ -169,20 +169,12 @@ static inline void mount_hdd_partition() {
       return;
 
    if (getMountInfo(mountPath, mountString, mountPoint) != 1) 
-   {
       RARCH_ERR("Partition info not mounted\n");
-   } else 
-   {
-      if (fileXioMount(mountString, mountPoint, FIO_MT_RDWR) < 0) 
-      {
-         RARCH_ERR("Error mount mounting partition %s, %s\n", mountString, mountPoint);
-      } else {
-         if (bootDeviceID == BOOT_DEVICE_HDD || bootDeviceID == BOOT_DEVICE_HDD0)
-         {
-            // If we're booting from HDD, we must update the cwd variable
-            strlcpy(cwd, mountString, sizeof(cwd));
-         }
-      }
+   else if (fileXioMount(mountString, mountPoint, FIO_MT_RDWR) < 0) 
+      RARCH_ERR("Error mount mounting partition %s, %s\n", mountString, mountPoint);
+   else if (bootDeviceID == BOOT_DEVICE_HDD || bootDeviceID == BOOT_DEVICE_HDD0)
+      // If we're booting from HDD, we must update the cwd variable
+      strlcpy(cwd, mountString, sizeof(cwd));
    }
 }
 
@@ -233,19 +225,15 @@ static void frontend_ps2_init(void *data)
 #ifndef IS_SALAMANDER
    /* Initializes audsrv library */
    if (audsrv_init())
-   {
       RARCH_ERR("audsrv library not initalizated\n");
-   }
 
    /* Initializes pad un multitap libraries */
    if (mtapInit() != 1)
-   {
       RARCH_ERR("mtapInit library not initalizated\n");
-   }
+
    if (padInit(0) != 1)
-   {
       RARCH_ERR("padInit library not initalizated\n");
-   }
+
 #endif
 
 #if defined(BUILD_FOR_PCSX2)
