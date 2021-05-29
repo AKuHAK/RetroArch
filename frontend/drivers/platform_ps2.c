@@ -373,6 +373,10 @@ static void frontend_ps2_exec(const char *path, bool should_load_game)
       argv[0] = (char *)path_get(RARCH_PATH_CONTENT);
    }
 #endif
+   if (hddMounted) 
+   {
+      sprintf(argv[0], "hdd0:%s:%s/", mountString,argv[0]);
+   }
    LoadELFFromFile(path, args, argv);
 }
 
