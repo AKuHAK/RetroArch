@@ -54,6 +54,7 @@
 static enum frontend_fork ps2_fork_mode = FRONTEND_FORK_NONE;
 static char cwd[FILENAME_MAX];
 static char mountString[10];
+static char mountPoint[50];
 static int hddMounted = 0;
 static int hddModulesLoaded = 0;
 
@@ -210,7 +211,6 @@ static void load_modules()
 
 static int mount_hdd_partition() {
    char mountPath[FILENAME_MAX];
-   char mountPoint[50];
    char mountedCWD[FILENAME_MAX];
    int shouldMount = 0;
    enum BootDeviceIDs bootDeviceID;
@@ -372,11 +372,11 @@ static void frontend_ps2_exec(const char *path, bool should_load_game)
       args++;
       argv[0] = (char *)path_get(RARCH_PATH_CONTENT);
    }
-#endif
    if (hddMounted) 
    {
-      sprintf(argv[0], "hdd0:%s:%s/", mountString,argv[0]);
+      sprintf(argv[0], "%s:%s", mountPoint, argv[0]);
    }
+#endif
    LoadELFFromFile(path, args, argv);
 }
 
