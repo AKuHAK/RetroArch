@@ -32,6 +32,8 @@
 #define DEVICE_MASS0 "mass0:"
 #define DEVICE_HDD "hdd:"
 #define DEVICE_HDD0 "hdd0:"
+#define DEVICE_PFS "pfs:"
+#define DEVICE_PFS0 "pfs0:"
 #define DEVICE_HOST "host:"
 #define DEVICE_HOST0 "host0:"
 #define DEVICE_HOST1 "host1:"
@@ -52,6 +54,8 @@
 #define DEVICE_MASS0_PATH DEVICE_MASS0 DEVICE_SLASH
 #define DEVICE_HDD_PATH DEVICE_HDD DEVICE_SLASH
 #define DEVICE_HDD0_PATH DEVICE_HDD0 DEVICE_SLASH
+#define DEVICE_PFS_PATH DEVICE_PFS DEVICE_SLASH
+#define DEVICE_PFS0_PATH DEVICE_PFS0 DEVICE_SLASH
 #define DEVICE_HOST_PATH DEVICE_HOST DEVICE_SLASH
 #define DEVICE_HOST0_PATH DEVICE_HOST0 DEVICE_SLASH
 #define DEVICE_HOST1_PATH DEVICE_HOST1 DEVICE_SLASH
@@ -84,6 +88,10 @@ char *rootDevicePath(enum BootDeviceIDs device_id)
          return DEVICE_HDD_PATH;
       case BOOT_DEVICE_HDD0:
          return DEVICE_HDD0_PATH;
+      case BOOT_DEVICE_PFS:
+         return DEVICE_PFS_PATH;
+      case BOOT_DEVICE_PFS0:
+         return DEVICE_PFS0_PATH;
       case BOOT_DEVICE_HOST:
          return DEVICE_HOST_PATH;
       case BOOT_DEVICE_HOST0:
@@ -129,6 +137,10 @@ enum BootDeviceIDs getBootDeviceID(char *path)
       return BOOT_DEVICE_HDD;
    else if (!strncmp(path, DEVICE_HDD0, 5))
       return BOOT_DEVICE_HDD0;
+   else if (!strncmp(path, DEVICE_PFS, 4))
+      return BOOT_DEVICE_PFS;
+   else if (!strncmp(path, DEVICE_PFS0, 5))
+      return BOOT_DEVICE_PFS0;
    else if (!strncmp(path, DEVICE_HOST, 5))
       return BOOT_DEVICE_HOST;
    else if (!strncmp(path, DEVICE_HOST0, 6))
