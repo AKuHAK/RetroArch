@@ -133,7 +133,7 @@ static void reset_IOP()
    sbv_patch_disable_prefix_check();
 }
 
-static void load_hdd_modules() 
+static void load_hdd_modules()
 {
    int ret;
    static char hddarg[] = "-o"
@@ -143,18 +143,18 @@ static void load_hdd_modules()
                         "-n"
                         "\0"
                         "20";
-   
+
    ret = SifExecModuleBuffer(&ps2dev9_irx, size_ps2dev9_irx, 0, NULL, NULL);
 
    ret = SifExecModuleBuffer(&ps2atad_irx, size_ps2atad_irx, 0, NULL, NULL);
-   if (ret < 0) 
+   if (ret < 0)
    {
       RARCH_LOG("HDD: No HardDisk Drive detected.\n");
       return;
    }
 
    ret = SifExecModuleBuffer(&ps2hdd_irx, size_ps2hdd_irx, sizeof(hddarg), hddarg, NULL);
-   if (ret < 0) 
+   if (ret < 0)
    {
       RARCH_LOG("HDD: No HardDisk Drive detected.\n");
       return;
@@ -170,7 +170,7 @@ static void load_hdd_modules()
    hddModulesLoaded = 1;
 }
 
-static void load_modules() 
+static void load_modules()
 {
    /* I/O Files */
    SifExecModuleBuffer(&iomanX_irx, size_iomanX_irx, 0, NULL, NULL);
@@ -217,12 +217,14 @@ static int mount_hdd_partition() {
 
    /* Try to mount HDD partition, either from cwd or default one */
    bootDeviceID = getBootDeviceID(cwd);
+   printf("cwd = %s", cwd);
+
    if (bootDeviceID == BOOT_DEVICE_HDD || bootDeviceID == BOOT_DEVICE_HDD0)
    {
       shouldMount = 1;
       strlcpy(mountPath, cwd, sizeof(mountPath));
-   } 
-   else 
+   }
+   else
    {
       sprintf(mountPath, "hdd0:__common:pfs");
 #if !defined(IS_SALAMANDER)
@@ -230,16 +232,18 @@ static int mount_hdd_partition() {
 #endif
    }
 
+   printf("mountPath = %s", mountPath);
+
    if (!shouldMount)
       return 0;
 
-   if (getMountInfo(mountPath, mountString, mountPoint, mountedCWD) != 1) 
+   if (getMountInfo(mountPath, mountString, mountPoint, mountedCWD) != 1)
    {
       RARCH_LOG("Partition info not readed\n");
       return 0;
    }
 
-   if (fileXioMount(mountString, mountPoint, FIO_MT_RDWR) < 0) 
+   if (fileXioMount(mountString, mountPoint, FIO_MT_RDWR) < 0)
    {
       RARCH_LOG("Error mount mounting partition %s, %s\n", mountString, mountPoint);
       return 0;
@@ -252,9 +256,9 @@ static int mount_hdd_partition() {
    return 1;
 }
 
-static void prepare_for_exit(void) 
+static void prepare_for_exit(void)
 {
-   if (hddMounted) 
+   if (hddMounted)
    {
       fileXioUmount(mountString);
       fileXioDevctl(mountString, PDIOC_CLOSEALL, NULL, 0, NULL, 0);
@@ -372,7 +376,7 @@ static void frontend_ps2_exec(const char *path, bool should_load_game)
       args++;
       argv[0] = (char *)path_get(RARCH_PATH_CONTENT);
    }
-   if (hddMounted) 
+   if (hddMounted)
    {
       sprintf(argv[0], "%s:%s", mountPoint, argv[0]);
    }
@@ -464,7 +468,7 @@ static int frontend_ps2_parse_drive_list(void *data, bool load_content)
          msg_hash_to_str(MENU_ENUM_LABEL_FILE_DETECT_CORE_LIST_PUSH_DIR),
          enum_idx,
          FILE_TYPE_DIRECTORY, 0, 0);
-   if (hddMounted) 
+   if (hddMounted)
    {
       sprintf(hdd, "%s/", mountString);
       menu_entries_append_enum(list,
