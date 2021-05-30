@@ -190,6 +190,11 @@ static void load_modules()
    SifExecModuleBuffer(&poweroff_irx, size_poweroff_irx, 0, NULL, NULL);
 #endif
 
+   verbosity_enable();
+//   logger_init();
+   retro_main_log_file_init("mc0:/RETROARCH/retroarch-log.txt", true);
+   RARCH_LOG("Test line\n");
+
    /* HDD */
    load_hdd_modules();
 
