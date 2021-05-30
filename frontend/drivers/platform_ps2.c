@@ -307,6 +307,10 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
          RARCH_LOG("argv[1]: %s\n", argv[1]);
 
          RARCH_LOG("Auto-start game %s.\n", argv[1]);
+         printf("argv[0]: %s\n", argv[0]);
+         printf("argv[1]: %s\n", argv[1]);
+
+         printf("Auto-start game %s.\n", argv[1]);
       }
    }
 #endif
@@ -345,6 +349,7 @@ static void frontend_ps2_init(void *data)
 #endif
 
    getcwd(cwd, sizeof(cwd));
+   printf("cwd = %s", cwd);
    hddMounted = mount_hdd_partition();
 
 #if !defined(IS_SALAMANDER) && !defined(DEBUG)
