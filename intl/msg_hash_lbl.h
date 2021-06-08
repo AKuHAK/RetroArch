@@ -397,6 +397,10 @@ MSG_HASH(
    "cheevos_start_active"
    )
 MSG_HASH(
+   MENU_ENUM_LABEL_CHEEVOS_CHALLENGE_INDICATORS,
+   "cheevos_challenge_indicators"
+   )
+MSG_HASH(
    MENU_ENUM_LABEL_CLOSE_CONTENT,
    "unload_core"
    )
@@ -4471,6 +4475,10 @@ MSG_HASH(
 MSG_HASH(
    MENU_ENUM_LABEL_CHEAT_DELETE_MATCH,
    "cheat_delete_match"
+   )
+MSG_HASH(
+   MENU_ENUM_LABEL_CRT_SWITCH_HIRES_MENU,
+   "crt_switch_hires_menu"
    )
 MSG_HASH(
    MENU_ENUM_LABEL_CRT_SWITCH_RESOLUTION_USE_CUSTOM_REFRESH_RATE,

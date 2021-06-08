@@ -1,5 +1,22 @@
 # Future
-- PSTV: Fix scaling on PSTV when not using 720p
+- ARCHIVE: Fix loading of archived content with file names containing '#' characters
+- CHEEVOS: Challenge indicators
+- CHEEVOS: Group achievements by category in quick menu
+- CHEEVOS: Relabel 'Start Active' with 'Encore Mode'
+- D3D10: Window title should now update
+- D3D11: Window title should now update
+- D3D11: Allow fastforward in fullscreen
+- D3D12: Window title should now update
+- D3D12: Allow fastforward in fullscreen
+- CRT/SWITCHRES: New implementation
+- FONTS: Improve message wrapping with CJK languages
+- FONTS: Fix garbled characters when converting encodings
+- LIBRETRO: Add API extension for setting 'need_fullpath' based on content file extension and to request persistent frontend content data buffers
+- UNIX: Get better battery stats on sysfs nodes
+- VIDEO: Extend Frame Delay range to 19 to accommodate PAL land too 
+- WIFI/LAKKA: Add nmcli to wifi drivers
+- WIFI/LAKKA: Add wifi configuration menu
+- X11: fix fullscreen when swapping monitors/resolution
 
 # 1.9.4
 - CHEEVOS: update rcheevos to v10.0.0
@@ -16,6 +33,7 @@
 - PS3/PSL1GHT: Joypad driver works again
 - PSTV: Fix Vita input driver for PSTV
 - PSTV: Support for 720p on PSTV when using 'Unlock framebuffer' in Sharpscale plugin
+- PSTV: Fix scaling on PSTV when not using 720p
 - RPNG: Fix some memory corruption if processing broken input PNG file
 - SECURITY: Fix CVE-2021-28927
 

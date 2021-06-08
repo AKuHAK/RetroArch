@@ -26,7 +26,7 @@
 #include "../../core_option_manager.h"
 
 #ifdef HAVE_CHEEVOS
-#include "../../cheevos/cheevos.h"
+#include "../../cheevos/cheevos_menu.h"
 #endif
 #include "../../core_info.h"
 #include "../../verbosity.h"
@@ -137,6 +137,7 @@ DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_crt_switchres_super,       MENU_ENUM
 DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_crt_switchres_x_axis_centering,       MENU_ENUM_SUBLABEL_CRT_SWITCH_X_AXIS_CENTERING)
 DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_crt_switchres_porch_adjust,       MENU_ENUM_SUBLABEL_CRT_SWITCH_PORCH_ADJUST)
 DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_crt_switchres_use_custom_refresh_rate,       MENU_ENUM_SUBLABEL_CRT_SWITCH_RESOLUTION_USE_CUSTOM_REFRESH_RATE)
+DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_crt_switchres_hires_menu,       MENU_ENUM_SUBLABEL_CRT_SWITCH_HIRES_MENU)
 DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_driver_settings_list,             MENU_ENUM_SUBLABEL_DRIVER_SETTINGS)
 DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_retro_achievements_settings_list, MENU_ENUM_SUBLABEL_RETRO_ACHIEVEMENTS_SETTINGS)
 DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_saving_settings_list,          MENU_ENUM_SUBLABEL_SAVING_SETTINGS)
@@ -182,6 +183,7 @@ DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_cheevos_enable,                MENU_
 DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_cheevos_test_unofficial,       MENU_ENUM_SUBLABEL_CHEEVOS_TEST_UNOFFICIAL)
 DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_cheevos_hardcore_mode_enable,  MENU_ENUM_SUBLABEL_CHEEVOS_HARDCORE_MODE_ENABLE)
 DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_cheevos_leaderboards_enable,   MENU_ENUM_SUBLABEL_CHEEVOS_LEADERBOARDS_ENABLE)
+DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_cheevos_challenge_indicators,  MENU_ENUM_SUBLABEL_CHEEVOS_CHALLENGE_INDICATORS)
 DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_cheevos_richpresence_enable,   MENU_ENUM_SUBLABEL_CHEEVOS_RICHPRESENCE_ENABLE)
 DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_cheevos_badges_enable,         MENU_ENUM_SUBLABEL_CHEEVOS_BADGES_ENABLE)
 #if defined(HAVE_AUDIOMIXER)
@@ -1052,20 +1054,8 @@ static int action_bind_sublabel_cheevos_entry(
       const char *label, const char *path,
       char *s, size_t len)
 {
-   rcheevos_ctx_desc_t desc_info;
-   unsigned new_id;
-   char fetched_sublabel[MENU_SUBLABEL_MAX_LENGTH];
-
-   fetched_sublabel[0] = '\0';
-
-   new_id              = type - MENU_SETTINGS_CHEEVOS_START;
-   desc_info.idx       = new_id;
-   desc_info.s         = fetched_sublabel;
-   desc_info.len       = len;
-
-   rcheevos_get_description((rcheevos_ctx_desc_t*) &desc_info);
-
-   strlcpy(s, desc_info.s, len);
+   unsigned offset = type - MENU_SETTINGS_CHEEVOS_START;
+   rcheevos_menu_get_sublabel(offset, s, len);
    return 0;
 }
 #endif
@@ -1850,6 +1840,9 @@ int menu_cbs_init_bind_sublabel(menu_file_list_cbs_t *cbs,
             break;
          case MENU_ENUM_LABEL_CRT_SWITCH_RESOLUTION_USE_CUSTOM_REFRESH_RATE:
             BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_crt_switchres_use_custom_refresh_rate);
+            break;
+         case MENU_ENUM_LABEL_CRT_SWITCH_HIRES_MENU:
+            BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_crt_switchres_hires_menu);
             break;
          case MENU_ENUM_LABEL_AUDIO_RESAMPLER_QUALITY:
             BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_audio_resampler_quality);
@@ -3565,6 +3558,9 @@ int menu_cbs_init_bind_sublabel(menu_file_list_cbs_t *cbs,
             break;
          case MENU_ENUM_LABEL_CHEEVOS_LEADERBOARDS_ENABLE:
             BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_cheevos_leaderboards_enable);
+            break;
+         case MENU_ENUM_LABEL_CHEEVOS_CHALLENGE_INDICATORS:
+            BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_cheevos_challenge_indicators);
             break;
          case MENU_ENUM_LABEL_CHEEVOS_RICHPRESENCE_ENABLE:
             BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_cheevos_richpresence_enable);

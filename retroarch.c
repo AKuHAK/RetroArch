@@ -2,9 +2,9 @@
  *  Copyright (C) 2010-2014 - Hans-Kristian Arntzen
  *  Copyright (C) 2011-2017 - Daniel De Matteis
  *  Copyright (C) 2012-2015 - Michael Lelli
- *  Copyright (C) 2014-2017 - Jean-André Santoni
+ *  Copyright (C) 2014-2017 - Jean-Andrï¿½ Santoni
  *  Copyright (C) 2016-2019 - Brad Parker
- *  Copyright (C) 2016-2019 - Andrés Suárez (input mapper/Discord code)
+ *  Copyright (C) 2016-2019 - Andrï¿½s Suï¿½rez (input mapper/Discord code)
  *  Copyright (C) 2016-2017 - Gregor Richards (network code)
  *
  *  RetroArch is free software: you can redistribute it and/or modify it under the terms
@@ -174,6 +174,7 @@
 
 #ifdef HAVE_CHEEVOS
 #include "cheevos/cheevos.h"
+#include "cheevos/cheevos_menu.h"
 #endif
 
 #ifdef HAVE_TRANSLATE
@@ -225,7 +226,9 @@
 #include "gfx/video_thread_wrapper.h"
 #endif
 #include "gfx/video_display_server.h"
+#ifdef HAVE_CRTSWITCHRES
 #include "gfx/video_crt_switch.h"
+#endif
 #include "bluetooth/bluetooth_driver.h"
 #include "wifi/wifi_driver.h"
 #include "misc/cpufreq/cpufreq.h"
@@ -789,13 +792,8 @@ static int menu_dialog_iterate(
 
 #ifdef HAVE_CHEEVOS
       case MENU_DIALOG_HELP_CHEEVOS_DESCRIPTION:
-         {
-            rcheevos_ctx_desc_t desc_info;
-            desc_info.idx = p_dialog->current_id;
-            desc_info.s   = s;
-            desc_info.len = len;
-            rcheevos_get_description((rcheevos_ctx_desc_t*) &desc_info);
-         }
+         if (!rcheevos_menu_get_sublabel(p_dialog->current_id, s, len))
+            return 1;
          break;
 #endif
 
@@ -18526,6 +18524,48 @@ static bool rarch_environment_cb(unsigned cmd, void *data)
          }
          break;
 
+      case RETRO_ENVIRONMENT_SET_CONTENT_INFO_OVERRIDE:
+         {
+            const struct retro_system_content_info_override *overrides =
+                  (const struct retro_system_content_info_override *)data;
+
+            RARCH_LOG("[Environ]: RETRO_ENVIRONMENT_SET_CONTENT_INFO_OVERRIDE.\n");
+
+            /* Passing NULL always results in 'success' - this
+             * allows cores to test for frontend support of
+             * the RETRO_ENVIRONMENT_SET_CONTENT_INFO_OVERRIDE and
+             * RETRO_ENVIRONMENT_GET_GAME_INFO_EXT callbacks */
+            if (!overrides)
+               return true;
+
+            return content_file_override_set(overrides);
+         }
+         break;
+
+      case RETRO_ENVIRONMENT_GET_GAME_INFO_EXT:
+         {
+            content_state_t *p_content                       =
+                  content_state_get_ptr();
+            const struct retro_game_info_ext **game_info_ext =
+                  (const struct retro_game_info_ext **)data;
+
+            RARCH_LOG("[Environ]: RETRO_ENVIRONMENT_GET_GAME_INFO_EXT.\n");
+
+            if (!game_info_ext)
+               return false;
+
+            if (p_content &&
+                p_content->content_list &&
+                p_content->content_list->game_info_ext)
+               *game_info_ext = p_content->content_list->game_info_ext;
+            else
+            {
+               RARCH_ERR("[Environ]: Failed to retrieve extended game info\n");
+               *game_info_ext = NULL;
+               return false;
+            }
+         }
+         break;
 
       default:
          RARCH_LOG("[Environ]: UNSUPPORTED (#%u).\n", cmd);
@@ -18938,7 +18978,6 @@ static void free_retro_ctx_load_content_info(struct
    if (!dest)
       return;
 
-   core_free_retro_game_info(dest->info);
    string_list_free((struct string_list*)dest->content);
    if (dest->info)
       free(dest->info);
@@ -18956,32 +18995,19 @@ static struct retro_game_info* clone_retro_game_info(const
    if (!dest)
       return NULL;
 
-   dest->path                   = NULL;
-   dest->data                   = NULL;
-   dest->size                   = 0;
-   dest->meta                   = NULL;
-
-   if (src->size && src->data)
-   {
-      void *data = malloc(src->size);
-
-      if (data)
-      {
-         memcpy(data, src->data, src->size);
-         dest->data = data;
-      }
-   }
-
-   if (!string_is_empty(src->path))
-      dest->path = strdup(src->path);
-   if (!string_is_empty(src->meta))
-      dest->meta = strdup(src->meta);
-
-   dest->size    = src->size;
+   /* content_file_init() guarantees that all
+    * elements of the source retro_game_info
+    * struct will persist for the lifetime of
+    * the core. This means we do not have to
+    * copy any data; pointer assignment is
+    * sufficient */
+   dest->path = src->path;
+   dest->data = src->data;
+   dest->size = src->size;
+   dest->meta = src->meta;
 
    return dest;
 }
-
 
 static struct retro_ctx_load_content_info
 *clone_retro_ctx_load_content_info(
@@ -31577,7 +31603,7 @@ static void video_driver_frame(const void *data, unsigned width,
    bool widgets_active          = p_rarch->widgets_active;
 #endif
 
-   status_text[0]                  = '\0';
+   status_text[0]               = '\0';
    video_driver_msg[0]          = '\0';
 
    if (!video_driver_active)
@@ -31941,46 +31967,57 @@ static void video_driver_frame(const void *data, unsigned width,
       }
    }
 
+#if defined(HAVE_CRTSWITCHRES)
    /* trigger set resolution*/
    if (video_info.crt_switch_resolution)
    {
-      p_rarch->video_driver_crt_switching_active          = true;
+      unsigned native_width                      = width;
+      bool dynamic_super_width                   = false;
+
+      p_rarch->video_driver_crt_switching_active = true;
 
       switch (video_info.crt_switch_resolution_super)
       {
          case 2560:
          case 3840:
          case 1920:
-            width                                         =
-               video_info.crt_switch_resolution_super;
-            p_rarch->video_driver_crt_dynamic_super_width = false;
+            width               = video_info.crt_switch_resolution_super;
+            dynamic_super_width = false;
             break;
          case 1:
-            p_rarch->video_driver_crt_dynamic_super_width = true;
+            dynamic_super_width = true;
             break;
          default:
-            p_rarch->video_driver_crt_dynamic_super_width = false;
             break;
       }
 
       crt_switch_res_core(
             &p_rarch->crt_switch_st,
-            width,
+            native_width, width,
             height,
             p_rarch->video_driver_core_hz,
             video_info.crt_switch_resolution,
             video_info.crt_switch_center_adjust,
             video_info.crt_switch_porch_adjust,
             video_info.monitor_index,
-            p_rarch->video_driver_crt_dynamic_super_width);
+            dynamic_super_width,
+            video_info.crt_switch_resolution_super,
+            video_info.crt_switch_hires_menu);
    }
    else if (!video_info.crt_switch_resolution)
+#endif
       p_rarch->video_driver_crt_switching_active = false;
 }
 
-void crt_switch_driver_reinit(void)
+void crt_switch_driver_refresh(void)
 {
+   /*video_context_driver_reset();*/
    video_driver_reinit(DRIVERS_CMD_ALL);
+}
+
+char* crt_switch_core_name(void)
+{
+   return (char*)runloop_state.system.info.library_name;
 }
 
 void video_driver_display_type_set(enum rarch_display_type type)
@@ -32082,7 +32119,8 @@ void video_driver_build_info(video_frame_info_t *video_info)
    video_info->crt_switch_resolution       = settings->uints.crt_switch_resolution;
    video_info->crt_switch_resolution_super = settings->uints.crt_switch_resolution_super;
    video_info->crt_switch_center_adjust    = settings->ints.crt_switch_center_adjust;
-   video_info->crt_switch_porch_adjust    = settings->ints.crt_switch_porch_adjust;
+   video_info->crt_switch_porch_adjust     = settings->ints.crt_switch_porch_adjust;
+   video_info->crt_switch_hires_menu       = settings->bools.crt_switch_hires_menu;
    video_info->black_frame_insertion       = settings->uints.video_black_frame_insertion;
    video_info->hard_sync                   = settings->bools.video_hard_sync;
    video_info->hard_sync_frames            = settings->uints.video_hard_sync_frames;
@@ -33480,6 +33518,18 @@ static void retroarch_deinit_drivers(
    }
 #endif
 
+#if defined(HAVE_CRTSWITCHRES)
+   /* Switchres deinit */
+   if (p_rarch->video_driver_crt_switching_active)
+   {
+#if defined(DEBUG)
+      RARCH_LOG("[CRT]: Getting video info\n");
+      RARCH_LOG("[CRT]: About to destroy SR\n");
+#endif
+      crt_destroy_modes(&p_rarch->crt_switch_st);
+   }
+#endif
+
    /* Video */
    video_display_server_destroy();
 
@@ -33527,6 +33577,7 @@ static void retroarch_deinit_drivers(
    cbs->state_cb                                    = NULL;
 
    p_rarch->current_core.inited                     = false;
+
 }
 
 bool driver_ctl(enum driver_ctl_state state, void *data)
@@ -39390,23 +39441,6 @@ bool core_has_set_input_descriptor(void)
    struct rarch_state *p_rarch = &rarch_st;
    return p_rarch->current_core.has_set_input_descriptors;
 }
-
-#if defined(HAVE_RUNAHEAD)
-static void core_free_retro_game_info(struct retro_game_info *dest)
-{
-   if (!dest)
-      return;
-   if (dest->path)
-      free((void*)dest->path);
-   if (dest->data)
-      free((void*)dest->data);
-   if (dest->meta)
-      free((void*)dest->meta);
-   dest->path = NULL;
-   dest->data = NULL;
-   dest->meta = NULL;
-}
-#endif
 
 unsigned int retroarch_get_rotation(void)
 {
