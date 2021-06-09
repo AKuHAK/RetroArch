@@ -27,9 +27,7 @@
 #include <elf-loader.h>
 #include <libcdvd-common.h>
 
-#ifndef IS_SALAMANDER
 #include <libpwroff.h>
-#endif
 
 
 #define NEWLIB_PORT_AWARE
@@ -184,7 +182,6 @@ static void load_modules()
    SifExecModuleBuffer(&usbd_irx, size_usbd_irx, 0, NULL, NULL);
    SifExecModuleBuffer(&usbhdfsd_irx, size_usbhdfsd_irx, 0, NULL, NULL);
 
-#ifndef IS_SALAMANDER
    /* Power off */
    SifExecModuleBuffer(&poweroff_irx, size_poweroff_irx, 0, NULL, NULL);
 #endif
@@ -265,13 +262,11 @@ static void prepare_for_exit(void)
       fileXioDevctl("dev9x:", DDIOC_OFF, NULL, 0, NULL, 0);
 }
 
-#ifndef IS_SALAMANDER
 static void poweroffHandler(void *arg)
 {
    prepare_for_exit();
    poweroffShutdown();
 }
-#endif
 
 static void frontend_ps2_get_env(int *argc, char *argv[],
       void *args, void *params_data)
@@ -317,10 +312,8 @@ static void frontend_ps2_init(void *data)
    reset_IOP();
    load_modules();
 
-#ifndef IS_SALAMANDER
    poweroffInit();
    poweroffSetCallback(&poweroffHandler, NULL);
-#endif
 
 #ifndef IS_SALAMANDER
    /* Initializes audsrv library */
