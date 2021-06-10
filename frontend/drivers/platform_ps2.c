@@ -52,6 +52,7 @@
 static enum frontend_fork ps2_fork_mode = FRONTEND_FORK_NONE;
 static char cwd[FILENAME_MAX];
 static char mountString[10];
+static char mountPoint[50];
 static int hddMounted = 0;
 static int hddModulesLoaded = 0;
 
@@ -184,7 +185,6 @@ static void load_modules()
 
    /* Power off */
    SifExecModuleBuffer(&poweroff_irx, size_poweroff_irx, 0, NULL, NULL);
-#endif
 
    /* HDD */
    load_hdd_modules();
@@ -207,28 +207,23 @@ static void load_modules()
 
 static int mount_hdd_partition() {
    char mountPath[FILENAME_MAX];
-   char mountPoint[50];
    char mountedCWD[FILENAME_MAX];
-   int shouldMount = 0;
    enum BootDeviceIDs bootDeviceID;
 
    /* Try to mount HDD partition, either from cwd or default one */
    bootDeviceID = getBootDeviceID(cwd);
    if (bootDeviceID == BOOT_DEVICE_HDD || bootDeviceID == BOOT_DEVICE_HDD0)
    {
-      shouldMount = 1;
       strlcpy(mountPath, cwd, sizeof(mountPath));
    } 
-   else 
+   else
    {
-      sprintf(mountPath, "hdd0:__common:pfs");
-#if !defined(IS_SALAMANDER)
-      shouldMount = 1;
+#ifdef IS_SALAMANDER
+      sprintf(mountPath, "hdd0:__common:pfs0:");
+#else
+      sprintf(mountPath, "hdd0:__common:pfs0:/cores");
 #endif
    }
-
-   if (!shouldMount)
-      return 0;
 
    if (getMountInfo(mountPath, mountString, mountPoint, mountedCWD) != 1) 
    {
@@ -243,8 +238,11 @@ static int mount_hdd_partition() {
    }
 
    // If we're booting from HDD, we must update the cwd variable
+   // and swith path
    if (bootDeviceID == BOOT_DEVICE_HDD || bootDeviceID == BOOT_DEVICE_HDD0)
+   {
       sprintf(cwd, "%s/", mountedCWD);
+   }
 
    return 1;
 }
@@ -272,6 +270,25 @@ static void frontend_ps2_get_env(int *argc, char *argv[],
       void *args, void *params_data)
 {
    int i;
+
+   // If we're booting from HDD, we must update the argv[0] variable
+   if (string_starts_with_size(argv[0], "hdd", STRLEN_CONST("hdd")))
+      strlcpy(argv[0], cwd, sizeof(cwd));
+
+#ifndef IS_SALAMANDER
+#ifdef HAVE_FILE_LOGGER
+   retro_main_log_file_deinit();
+   verbosity_set_log_level(0);
+   verbosity_enable();
+   retro_main_log_file_init("mc0:/retroarch-log.txt", true);
+   RARCH_LOG("---Manual verbosity enabled on mc0---\n");
+#endif
+#endif
+
+#if !defined(IS_SALAMANDER) && !defined(DEBUG)
+   // If it is not salamander we need to go one level up for set the CWD.
+   path_parent_dir(cwd);
+#endif
    create_path_names();
 
 #ifndef IS_SALAMANDER
@@ -333,22 +350,30 @@ static void frontend_ps2_init(void *data)
    }
 #endif
 
-   getcwd(cwd, sizeof(cwd));
+   // getcwd(cwd, sizeof(cwd));
+   // for debugging set static cwd if booted from host
+   if (string_starts_with_size(cwd, "host", STRLEN_CONST("host")))
+      sprintf(cwd, "hdd0:__common:pfs0:");
+
    hddMounted = mount_hdd_partition();
 
-#if !defined(IS_SALAMANDER) && !defined(DEBUG)
-   // If it is not salamander we need to go one level up for set the CWD.
-   path_parent_dir(cwd);
-#endif
-
 #if !defined(DEBUG)
-   waitUntilDeviceIsReady(cwd);
+   /* AKuHAK:
+    * only USB needs that hack. Can do weird things with hdd
+    * Probably when we move into BDM drivers, this
+    * should be removed
+    */
+   if (string_starts_with_size(cwd, "mass", STRLEN_CONST("mass")))
+      waitUntilDeviceIsReady(cwd);
 #endif
 }
 
 static void frontend_ps2_deinit(void *data)
 {
 #if !defined(IS_SALAMANDER)
+#ifdef HAVE_FILE_LOGGER
+   retro_main_log_file_deinit();
+#endif
    if (ps2_fork_mode == FRONTEND_FORK_NONE)
       prepare_for_exit();
 #endif
@@ -358,6 +383,7 @@ static void frontend_ps2_exec(const char *path, bool should_load_game)
 {
    int args = 0;
    static char *argv[1];
+   char mountPath[FILENAME_MAX];
    RARCH_LOG("Attempt to load executable: [%s].\n", path);
 #ifndef IS_SALAMANDER
    if (should_load_game && !path_is_empty(RARCH_PATH_CONTENT))
@@ -366,6 +392,13 @@ static void frontend_ps2_exec(const char *path, bool should_load_game)
       argv[0] = (char *)path_get(RARCH_PATH_CONTENT);
    }
 #endif
+   /* for hdd we need to add mountPoint into argv[0]
+    */
+   if (string_starts_with_size(cwd, "pfs", STRLEN_CONST("pfs")))
+   {
+      sprintf(mountPath, "%s:%s", mountPoint, argv[0]);
+      strlcpy(argv[0], mountPath, sizeof(mountPath));
+   }
    LoadELFFromFile(path, args, argv);
 }
 
@@ -427,7 +460,6 @@ enum frontend_architecture frontend_ps2_get_arch(void)
 static int frontend_ps2_parse_drive_list(void *data, bool load_content)
 {
 #ifndef IS_SALAMANDER
-   char hdd[10];
    file_list_t *list = (file_list_t*)data;
    enum msg_hash_enums enum_idx = load_content ?
       MENU_ENUM_LABEL_FILE_DETECT_CORE_LIST_PUSH_DIR :
@@ -455,9 +487,8 @@ static int frontend_ps2_parse_drive_list(void *data, bool load_content)
          FILE_TYPE_DIRECTORY, 0, 0);
    if (hddMounted) 
    {
-      sprintf(hdd, "%s/", mountString);
       menu_entries_append_enum(list,
-            hdd,
+            rootDevicePath(BOOT_DEVICE_PFS0),
             msg_hash_to_str(MENU_ENUM_LABEL_FILE_DETECT_CORE_LIST_PUSH_DIR),
             enum_idx,
             FILE_TYPE_DIRECTORY, 0, 0);
