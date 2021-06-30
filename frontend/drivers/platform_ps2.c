@@ -191,6 +191,14 @@ static void frontend_ps2_init(void *data)
 
 
 #ifndef IS_SALAMANDER
+   /* initialize early verbosity */
+#ifdef HAVE_FILE_LOGGER
+   verbosity_enable();
+   verbosity_set_log_level(0);
+   retro_main_log_file_init("mc0:/RETROARCH/retroarch-log.txt", true);
+   RARCH_LOG("verbosity enabled\n");
+#endif
+
    /* Initializes audsrv library */
    if (audsrv_init())
    {
@@ -294,7 +302,7 @@ static int frontend_ps2_get_rating(void) { return 10; }
 
 enum frontend_architecture frontend_ps2_get_arch(void)
 {
-    return FRONTEND_ARCH_MIPS;
+   return FRONTEND_ARCH_MIPS;
 }
 
 static int frontend_ps2_parse_drive_list(void *data, bool load_content)
