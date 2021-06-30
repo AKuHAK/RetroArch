@@ -2,6 +2,7 @@ BUILD_FOR_PCSX2    = 0
 DEBUG              = 0
 HAVE_THREADS       = 0
 MUTE_WARNINGS      = 1
+HAVE_FILE_LOGGER   = 0
 PS2_IP = 192.168.1.10
 
 TARGET = retroarchps2-debug.elf
@@ -11,15 +12,15 @@ TARGET_RELEASE = retroarchps2.elf
 IRX_DIR = ps2/irx
 
 ifeq ($(DEBUG), 1)
-   OPTIMIZE_LV	:= -O0 -g
+	OPTIMIZE_LV	:= -O0 -g
 	RARCH_DEFINES += -DDEBUG
 else
-   OPTIMIZE_LV	:= -O3
+	OPTIMIZE_LV	:= -O3
 	LDFLAGS :=  -s
 endif
 
 ifeq ($(MUTE_WARNINGS), 1)
-   DISABLE_WARNINGS := -Wno-unused -Wno-format -Wno-format-truncation
+	DISABLE_WARNINGS := -Wno-unused -Wno-format -Wno-format-truncation
 endif
 
 INCDIR = -I$(PS2DEV)/gsKit/include -I$(PS2SDK)/ports/include
@@ -43,6 +44,10 @@ endif
 
 ifeq ($(HAVE_THREADS), 1)
 RARCH_DEFINES += -DHAVE_THREADS
+endif
+
+ifeq ($(HAVE_FILE_LOGGER), 1)
+RARCH_DEFINES += -DHAVE_FILE_LOGGER
 endif
 
 CFLAGS += $(RARCH_DEFINES)
