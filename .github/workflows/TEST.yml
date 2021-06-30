@@ -1,0 +1,42 @@
+name: CI-test
+
+on:
+  push:
+  pull_request:
+  repository_dispatch:
+    types: [run_build]
+
+jobs:
+  build-ps2:
+    runs-on: ubuntu-latest
+    container: ps2dev/ps2dev:latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install dependencies
+      run: |
+        apk add build-base git bash
+
+    - name: Compile project
+      run: |
+        git clone https://github.com/libretro/libretro-fceumm --depth 1
+        cd libretro-fceumm
+        make -f Makefile.libretro platform=ps2 clean all
+        cp fceumm_libretro_ps2.a ../libretro_ps2.a
+        cd ..
+        make -f Makefile.ps2.salamander -j1 DEBUG=1 BUILD_FOR_PCSX2=1
+        make -f Makefile.ps2 -j4 DEBUG=1 BUILD_FOR_PCSX2=1
+        mkdir -p RETROARCH/cores
+        mv raboot-debug.elf RETROARCH/raboot-debug.elf
+        mv retroarchps2-debug.elf RETROARCH/cores/fceumm_libretro_ps2.elf
+
+    - name: Get short SHA
+      id: slug
+      run: echo "::set-output name=sha8::$(echo ${GITHUB_SHA} | cut -c1-8)"
+
+    - name: Upload artifacts
+      if: ${{ success() }}
+      uses: actions/upload-artifact@v2
+      with:
+        name: fceumm_libretro_ps2-${{ steps.slug.outputs.sha8 }}
+        path: RETROARCH/
