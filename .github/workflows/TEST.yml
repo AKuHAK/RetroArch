@@ -25,7 +25,7 @@ jobs:
         cp fceumm_libretro_ps2.a ../libretro_ps2.a
         cd ..
         make -f Makefile.ps2.salamander -j1 DEBUG=1 BUILD_FOR_PCSX2=1
-        make -f Makefile.ps2 -j4 DEBUG=1 BUILD_FOR_PCSX2=1
+        make -f Makefile.ps2 -j4 DEBUG=1 BUILD_FOR_PCSX2=1 HAVE_FILE_LOGGER=1
         mkdir -p RETROARCH/cores
         mv raboot-debug.elf RETROARCH/raboot-debug.elf
         mv retroarchps2-debug.elf RETROARCH/cores/fceumm_libretro_ps2.elf
